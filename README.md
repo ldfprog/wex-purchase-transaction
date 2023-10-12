@@ -4,7 +4,7 @@ Application for storage and retrieval of transactions with currency conversion.
 # Technologies
 Language: Java  
 Frameworks: Spring Boot, Spring Security and Spring Data JPA  
-Additional libraries: Stringdoc and Jackson  
+Additional libraries: Springdoc and Jackson  
 Database: H2  
 Build and deploy: Apache Maven  
 Container: Docker  
