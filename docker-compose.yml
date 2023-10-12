@@ -1,0 +1,11 @@
+version: '2'
+services:
+  transaction-server:
+    image: wex-purchase-transaction:latest
+    ports:
+      - 9900-9999:8080
+    networks:
+      - spring-cloud-network
+networks:
+  spring-cloud-network:
+    driver: bridge
