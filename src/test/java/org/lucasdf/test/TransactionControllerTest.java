@@ -24,12 +24,23 @@ public class TransactionControllerTest {
     @Value(value="${local.server.port}")
     private int port;
 
-    @Autowired
-    private TestRestTemplate restTemplate;
+    TestRestTemplate restTemplate = new TestRestTemplate("user", "password");
+    String url = "http://localhost:8080/wex/transaction";
 
     @Test
     public void contextLoads() throws Exception {
         assertThat(transactionController).isNotNull();
+    }
+
+    @Test
+    public void securitySetup() throws Exception {
+
+        TestRestTemplate restTemplateBadUser = new TestRestTemplate("resu", "drowssad");
+
+        ResponseEntity<DefaultResponse> response =
+                restTemplateBadUser.getForEntity(url + "?transactionId=1", DefaultResponse.class);
+
+        assertThat(response.getStatusCode().value()).isEqualTo(401);
     }
 
     @Test
@@ -42,7 +53,7 @@ public class TransactionControllerTest {
         );
 
         ResponseEntity<DefaultResponse> response =
-                this.restTemplate.postForEntity("http://localhost:" + port + "/wex/transaction", newTransactionDto, DefaultResponse.class);
+                this.restTemplate.postForEntity(url, newTransactionDto, DefaultResponse.class);
 
         assertThat(response.getStatusCode().value()).isEqualTo(200);
         assertThat(response.getBody().transactionId()).isGreaterThan(0);
@@ -58,7 +69,7 @@ public class TransactionControllerTest {
         );
 
         ResponseEntity<DefaultResponse> response =
-                this.restTemplate.postForEntity("http://localhost:" + port + "/wex/transaction", newTransactionDto, DefaultResponse.class);
+                this.restTemplate.postForEntity(url, newTransactionDto, DefaultResponse.class);
 
         assertThat(response.getStatusCode().value()).isEqualTo(400);
         assertThat(response.getBody().message()).contains("description");
@@ -74,7 +85,7 @@ public class TransactionControllerTest {
         );
 
         ResponseEntity<DefaultResponse> response =
-                this.restTemplate.postForEntity("http://localhost:" + port + "/wex/transaction", newTransactionDto, DefaultResponse.class);
+                this.restTemplate.postForEntity(url, newTransactionDto, DefaultResponse.class);
 
         assertThat(response.getStatusCode().value()).isEqualTo(400);
         assertThat(response.getBody().message()).contains("date");
@@ -90,7 +101,7 @@ public class TransactionControllerTest {
         );
 
         ResponseEntity<DefaultResponse> response =
-                this.restTemplate.postForEntity("http://localhost:" + port + "/wex/transaction", newTransactionDto, DefaultResponse.class);
+                this.restTemplate.postForEntity(url, newTransactionDto, DefaultResponse.class);
 
         assertThat(response.getStatusCode().value()).isEqualTo(400);
         assertThat(response.getBody().message()).contains("amount");
@@ -100,7 +111,7 @@ public class TransactionControllerTest {
     public void retrieveTransactionConflictNotFound() {
 
         ResponseEntity<DefaultResponse> response =
-                this.restTemplate.getForEntity("http://localhost:" + port + "/wex/transaction?transactionId=-1&currency=Real", DefaultResponse.class);
+                this.restTemplate.getForEntity(url + "?transactionId=-1&currency=Real", DefaultResponse.class);
 
         assertThat(response.getStatusCode().value()).isEqualTo(409);
         assertThat(response.getBody().message()).contains("not found");
@@ -110,7 +121,7 @@ public class TransactionControllerTest {
     public void retrieveTransactionBadRequestTransactionId() {
 
         ResponseEntity<DefaultResponse> response =
-                this.restTemplate.getForEntity("http://localhost:" + port + "/wex/transaction?currency=Real", DefaultResponse.class);
+                this.restTemplate.getForEntity(url + "?currency=Real", DefaultResponse.class);
 
         assertThat(response.getStatusCode().value()).isEqualTo(400);
         assertThat(response.getBody().message()).contains("transactionId");
@@ -120,7 +131,7 @@ public class TransactionControllerTest {
     public void retrieveTransactionBadRequestCurrency() {
 
         ResponseEntity<DefaultResponse> response =
-                this.restTemplate.getForEntity("http://localhost:" + port + "/wex/transaction?transactionId=1", DefaultResponse.class);
+                this.restTemplate.getForEntity(url + "?transactionId=1", DefaultResponse.class);
 
         assertThat(response.getStatusCode().value()).isEqualTo(400);
         assertThat(response.getBody().message()).contains("currency");
@@ -136,11 +147,12 @@ public class TransactionControllerTest {
         );
 
         ResponseEntity<DefaultResponse> response =
-                this.restTemplate.postForEntity("http://localhost:" + port + "/wex/transaction", newTransactionDto, DefaultResponse.class);
+                this.restTemplate.postForEntity(url, newTransactionDto, DefaultResponse.class);
 
+        System.out.println(response.getStatusCode());
 
         ResponseEntity<RequestedTransactionDto> responseRetrieve =
-                this.restTemplate.getForEntity("http://localhost:" + port + "/wex/transaction?currency=Real&transactionId=" + response.getBody().transactionId(), RequestedTransactionDto.class);
+                this.restTemplate.getForEntity(url + "?currency=Real&transactionId=" + response.getBody().transactionId(), RequestedTransactionDto.class);
 
         assertThat(responseRetrieve.getStatusCode().value()).isEqualTo(200);
         assertThat(responseRetrieve.getBody().description()).isEqualTo("Retrieve Test transaction");
